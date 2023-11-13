@@ -9,28 +9,30 @@ import * as bcrypt from 'bcryptjs';
 export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) { }
 
-  //find methods
+  // find methods
+
   async findAllUsers(): Promise<User[]> {
     return await this.userModel.find().exec();
   }
+
   async findUserByUsername(username: string): Promise<User> {
-    return await this.userModel.findOne({ username: username }).exec();
+    return await this.userModel.findOne({ username }).exec();
   }
   // async findUserById(id: number): Promise<User> {  //Για να κανω search με id
   //   return await this.userModel.findOne({ id: id }).exec();
   // }
   async findUserByEmail(email: string): Promise<User> {
-    return await this.userModel.findOne({ email: email }).exec();
+    return await this.userModel.findOne({ email }).exec();
   }
 
-  //create methods
+  // create methods
+
   async createUser(user: UserDto): Promise<User> {
     const { password } = user;
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new this.userModel({ ...user, password: hashedPassword });
     return await newUser.save();
   }
-
   //Αν θελουμε να αποθηκευσουμε πολλους μαζι
   async createUsers(users: UserDto[]): Promise<User[]> {
     const newUsers = users.map((user) => new this.userModel(user));
