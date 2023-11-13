@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User } from './user.schema';
 import { Model } from 'mongoose';
 import { UserDto } from './user.dto';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UserService {
@@ -12,16 +13,21 @@ export class UserService {
   async findAllUsers(): Promise<User[]> {
     return await this.userModel.find().exec();
   }
-  async findUserById(id: number): Promise<User> {
-    return await this.userModel.findOne({ id: id }).exec();
+  async findUserByUsername(username: string): Promise<User> {
+    return await this.userModel.findOne({ username: username }).exec();
   }
+  // async findUserById(id: number): Promise<User> {  //Για να κανω search με id
+  //   return await this.userModel.findOne({ id: id }).exec();
+  // }
   async findUserByEmail(email: string): Promise<User> {
     return await this.userModel.findOne({ email: email }).exec();
   }
 
   //create methods
   async createUser(user: UserDto): Promise<User> {
-    const newUser = new this.userModel(user);
+    const { password } = user;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new this.userModel({ ...user, password: hashedPassword });
     return await newUser.save();
   }
 

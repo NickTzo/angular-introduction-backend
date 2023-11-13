@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, ValidationPipe } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserDto } from './user.dto';
 
@@ -11,10 +11,14 @@ export class UserController {
   async findAllUsers() {
     return await this.userService.findAllUsers();
   }
-  @Get(':id')
-  async findUserById(@Param('id') id: string) {
-    return await this.userService.findUserById(parseInt(id));
+  @Get(':username')
+  async findUserByUsername(@Param('username') username: string) {
+    return await this.userService.findUserByUsername(username);
   }
+  // @Get(':id') //Για να κανω search με id
+  // async findUserById(@Param('id') id: string) {
+  //   return await this.userService.findUserById(parseInt(id));
+  // }
   @Get('email/:email')
   async findUserByEmail(@Param('email') email: string) {
     return await this.userService.findUserByEmail(email);
@@ -27,7 +31,15 @@ export class UserController {
   //Post endpoints
   @Post()
   async createUser(@Body(new ValidationPipe()) user: UserDto) {
-    return await this.userService.createUser(user);
+    try {
+      return await this.userService.createUser(user);
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new HttpException('Username or Email exists', HttpStatus.CONFLICT);
+      } else {
+        throw new HttpException('Unexpected Error occured', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
   }
 
   @Post('bulk')
